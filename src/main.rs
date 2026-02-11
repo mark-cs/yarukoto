@@ -3,11 +3,11 @@ mod task;
 mod tui;
 mod workspace;
 
-use ratatui::{self, DefaultTerminal};
+use ratatui::{self};
 
 use tui::model::Model;
 
-use crate::tui::{controller::Controller, model::RunningState};
+use tui::controller::Controller;
 
 use result::Result;
 
@@ -20,4 +20,3 @@ fn main() -> Result<()> {
 
     Ok(())
 }
-
