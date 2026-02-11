@@ -1,41 +1,23 @@
+mod result;
 mod task;
+mod tui;
 mod workspace;
 
-use std::io::Error;
-use std::result::Result;
+use ratatui::{self, DefaultTerminal};
 
-use clap::Parser;
-use ratatui::{DefaultTerminal, Frame, crossterm};
-use workspace::Workspace;
+use tui::model::Model;
 
-#[derive(Parser, Debug)]
-#[command(version, about)]
-struct Args {
-    #[arg(short = 'w', long = "workspace")]
-    workspace: String,
-}
+use crate::tui::{controller::Controller, model::RunningState};
 
-fn main() -> Result<(), Error> {
-    let args = Args::parse();
+use result::Result;
 
-    let workspace = Workspace::new(&args.workspace)?;
-    println!("Workspace: {:?}", workspace);
-    let tasks = workspace.tasks()?;
-    println!("Tasks: {:?}", tasks);
+fn main() -> Result<()> {
+    let model = Model::default();
 
-    ratatui::run(app)?;
+    let controller = Controller::new(model);
+
+    ratatui::run(|terminal| controller.run(terminal))?;
+
     Ok(())
 }
 
-fn app(terminal: &mut DefaultTerminal) -> std::io::Result<()> {
-    loop {
-        terminal.draw(render)?;
-        if crossterm::event::read()?.is_key_press() {
-            break Ok(());
-        }
-    }
-}
-
-fn render(frame: &mut Frame) {
-    frame.render_widget("hello world", frame.area());
-}
