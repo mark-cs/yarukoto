@@ -1,7 +1,7 @@
 use std::time::Duration;
 
 use ratatui::crossterm::event::{self, KeyCode};
-use ratatui::{DefaultTerminal, crossterm};
+use ratatui::DefaultTerminal;
 
 use crate::result::Result;
 use crate::tui::model::{Action, Model, Panel, RunningState};
