@@ -4,7 +4,7 @@ use crate::task::Task;
 
 #[derive(Debug)]
 pub struct Workspace {
-    name: String,
+    pub name: String,
     path: PathBuf,
 }
 
@@ -22,7 +22,7 @@ impl Workspace {
         })
     }
 
-    pub fn tasks(&self) -> Result<HashSet<Task>, Error> {
+    pub fn tasks(&self) -> Result<Vec<Task>, Error> {
         self.path
             .read_dir()?
             .flatten()

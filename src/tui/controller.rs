@@ -1,10 +1,12 @@
 use std::time::Duration;
 
-use ratatui::crossterm::event::{self, KeyCode};
 use ratatui::DefaultTerminal;
+use ratatui::crossterm::event::{self, KeyCode};
+use ratatui::layout::{Constraint, Direction, Layout};
 
 use crate::result::Result;
 use crate::tui::model::{Action, Model, Panel, RunningState};
+use crate::tui::view;
 
 pub struct Controller {
     model: Model,
@@ -27,43 +29,53 @@ impl Controller {
 
         Ok(())
     }
-    fn view(&self, frame: &mut ratatui::Frame<'_>) {
-        frame.render_widget("hello world", frame.area());
+    fn view(self: &mut Controller, frame: &mut ratatui::Frame<'_>) {
+        // Nav area / main area split
+        let nav_main_layout = Layout::default()
+            .direction(Direction::Horizontal)
+            .constraints(vec![Constraint::Percentage(30), Constraint::Percentage(70)])
+            .split(frame.area());
+
+        view::nav_bar(frame, nav_main_layout[0], &mut self.model);
+
+        frame.render_widget("main_view", nav_main_layout[1]);
     }
     fn handle_event(&self) -> Result<Option<Action>> {
         if event::poll(Duration::from_millis(250))? {
             let event = event::read()?;
             if let Some(key_event) = event.as_key_event() {
                 return match key_event.code {
-                    KeyCode::Up => match self.model.focussed_panel {
-                        Panel::TaskList => match self.model.selected_task {
+                    KeyCode::Down => match self.model.focussed_panel {
+                        Panel::TaskList => match self.model.task_selection().selected() {
                             Some(index) => Ok(Some(Action::SelectTask {
-                                // TODO check for out of bounds
-                                task_index: index + 1,
+                                task_index: std::cmp::max(
+                                    index.saturating_add(1),
+                                    self.model.task_count()?,
+                                ),
                             })),
                             None => Ok(Some(Action::SelectTask { task_index: 0 })),
                         },
-                        Panel::WorkspaceList => match self.model.selected_workspace {
+                        Panel::WorkspaceList => match self.model.workspace_selection().selected() {
                             Some(index) => Ok(Some(Action::SelectWorkspace {
-                                // TODO chec for out of bounds
-                                workspace_index: index + 1,
+                                workspace_index: std::cmp::max(
+                                    index.saturating_add(1),
+                                    self.model.workspace_count(),
+                                ),
                             })),
                             None => Ok(Some(Action::SelectWorkspace { workspace_index: 0 })),
                         },
                         _ => Ok(None),
                     },
-                    KeyCode::Down => match self.model.focussed_panel {
-                        Panel::TaskList => match self.model.selected_task {
+                    KeyCode::Up => match self.model.focussed_panel {
+                        Panel::TaskList => match self.model.task_selection().selected() {
                             Some(index) => Ok(Some(Action::SelectTask {
-                                // TODO check for out of bounds
-                                task_index: index - 1,
+                                task_index: index.saturating_sub(1),
                             })),
                             None => Ok(Some(Action::SelectTask { task_index: 0 })),
                         },
-                        Panel::WorkspaceList => match self.model.selected_workspace {
+                        Panel::WorkspaceList => match self.model.workspace_selection().selected() {
                             Some(index) => Ok(Some(Action::SelectWorkspace {
-                                // TODO chec for out of bounds
-                                workspace_index: index - 1,
+                                workspace_index: index.saturating_sub(1),
                             })),
                             None => Ok(Some(Action::SelectWorkspace { workspace_index: 0 })),
                         },
@@ -87,10 +99,14 @@ impl Controller {
             Action::FocusTaskListPane => self.model.focussed_panel = Panel::TaskList,
             Action::FocusTaskPane => self.model.focussed_panel = Panel::Task,
             Action::SelectWorkspace { workspace_index } => {
-                self.model.selected_workspace = Some(workspace_index);
-                self.model.selected_task = Some(0);
+                self.model
+                    .workspace_selection_mut()
+                    .select(Some(workspace_index));
+                self.model.task_selection_mut().select(Some(0));
             }
-            Action::SelectTask { task_index } => self.model.selected_task = Some(task_index),
+            Action::SelectTask { task_index } => {
+                self.model.task_selection_mut().select(Some(task_index))
+            }
         }
     }
 }

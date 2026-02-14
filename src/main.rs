@@ -11,8 +11,14 @@ use tui::controller::Controller;
 
 use result::Result;
 
+use crate::workspace::Workspace;
+
 fn main() -> Result<()> {
-    let model = Model::default();
+    let mut model = Model::default();
+
+    model
+        .workspaces_mut()
+        .push(Workspace::new(&String::from("./test-workspace/"))?);
 
     let controller = Controller::new(model);
 

@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 /// A task
 #[derive(PartialEq, Eq, Serialize, Deserialize, Debug)]
 pub struct Task {
-    title: String,
+    pub title: String,
     priority: Option<Priority>,
     status: Option<Status>,
     #[serde(default)]
