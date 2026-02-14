@@ -20,6 +20,7 @@ impl Model {
     pub fn workspace_selection_mut(self: &mut Model) -> &mut ListState {
         &mut self.workspace_selection
     }
+
     pub fn task_selection_mut(self: &mut Model) -> &mut ListState {
         &mut self.task_selection
     }
@@ -31,6 +32,7 @@ impl Model {
     pub fn task_selection(&self) -> &ListState {
         &self.task_selection
     }
+
     pub fn task_count(&self) -> Result<usize, Error> {
         match self.workspace_selection.selected() {
             Some(index) => Ok(self.workspaces[index].tasks()?.len()),
@@ -45,9 +47,11 @@ impl Model {
     pub fn workspaces(&self) -> &[Workspace] {
         &self.workspaces
     }
+
     pub(crate) fn workspaces_mut(&mut self) -> &mut Vec<Workspace> {
         &mut self.workspaces
     }
+
     pub fn tasks(&self) -> Result<Vec<Task>, Error> {
         match self.workspace_selection.selected() {
             Some(index) => Ok(self.workspaces[index].tasks()?),
