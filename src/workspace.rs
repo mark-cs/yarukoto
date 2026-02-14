@@ -1,4 +1,4 @@
-use std::{collections::HashSet, io::Error, path::PathBuf};
+use std::{io::Error, path::PathBuf};
 
 use crate::task::Task;
 

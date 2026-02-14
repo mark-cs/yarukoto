@@ -1,7 +1,7 @@
 use ratatui::{
     layout::{Constraint, Direction, Layout, Rect},
     style::Style,
-    widgets::{Block, List, ListDirection, Widget},
+    widgets::{Block, List, ListDirection},
 };
 
 use crate::{task::Task, tui::model::Model, workspace::Workspace};
