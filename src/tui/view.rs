@@ -1,7 +1,7 @@
 use ratatui::{
     layout::{Constraint, Direction, Layout, Rect},
     style::Style,
-    widgets::{Block, BorderType, List, ListDirection},
+    widgets::{Block, BorderType, List, ListDirection, Paragraph},
 };
 
 use crate::{
@@ -10,7 +10,34 @@ use crate::{
     workspace::Workspace,
 };
 
-pub fn nav_bar(frame: &mut ratatui::Frame<'_>, container: Rect, model: &mut Model) {
+pub fn view(frame: &mut ratatui::Frame<'_>, model: &mut Model) {
+    // Nav area / main area split
+    let nav_main_layout = Layout::default()
+        .direction(Direction::Horizontal)
+        .constraints(vec![Constraint::Percentage(30), Constraint::Percentage(70)])
+        .split(frame.area());
+    nav_bar(frame, nav_main_layout[0], model);
+    if let Some(index) = model.task_selection().selected() {
+        frame.render_widget(
+            task(&model.tasks()[index], model.focussed_panel == Panel::Task),
+            nav_main_layout[1],
+        )
+    };
+}
+
+fn task<'a>(task: &Task, panel_selected: bool) -> Paragraph<'a> {
+    Paragraph::new(task.title.clone()).block(
+        Block::bordered()
+            .border_type(if panel_selected {
+                BorderType::Double
+            } else {
+                BorderType::Plain
+            })
+            .title("Task (t)"),
+    )
+}
+
+fn nav_bar(frame: &mut ratatui::Frame<'_>, container: Rect, model: &mut Model) {
     let nav_layout = Layout::default()
         .direction(Direction::Vertical)
         .constraints(vec![Constraint::Percentage(30), Constraint::Percentage(70)])
@@ -24,16 +51,14 @@ pub fn nav_bar(frame: &mut ratatui::Frame<'_>, container: Rect, model: &mut Mode
         model.workspace_selection_mut(),
     );
 
-    frame.render_widget(
-        task_list(
-            &model.tasks().unwrap_or_default(),
-            model.focussed_panel == Panel::TaskList,
-        ),
+    frame.render_stateful_widget(
+        task_list(model.tasks(), model.focussed_panel == Panel::TaskList),
         nav_layout[1],
+        model.task_selection_mut(),
     );
 }
 
-pub fn workspace_list<'a>(workspaces: &[Workspace], panel_selected: bool) -> List<'a> {
+fn workspace_list<'a>(workspaces: &[Workspace], panel_selected: bool) -> List<'a> {
     List::new(workspaces.iter().map(|w| w.name.to_owned()))
         .block(
             Block::bordered()
@@ -45,12 +70,13 @@ pub fn workspace_list<'a>(workspaces: &[Workspace], panel_selected: bool) -> Lis
                 .title("Workspaces (w)"),
         )
         .style(Style::new().white())
-        .highlight_style(Style::new().italic())
-        .highlight_symbol(">")
+        .highlight_style(Style::new().blue().italic())
+        .highlight_symbol("▶")
         .repeat_highlight_symbol(true)
         .direction(ListDirection::TopToBottom)
 }
-pub fn task_list<'a>(tasks: &[Task], panel_selected: bool) -> List<'a> {
+
+fn task_list<'a>(tasks: &[Task], panel_selected: bool) -> List<'a> {
     List::new(tasks.iter().map(|w| w.title.to_owned()))
         .block(
             Block::bordered()
@@ -62,8 +88,8 @@ pub fn task_list<'a>(tasks: &[Task], panel_selected: bool) -> List<'a> {
                 .title("Tasks (l)"),
         )
         .style(Style::new().white())
-        .highlight_style(Style::new().italic())
-        .highlight_symbol(">")
+        .highlight_style(Style::new().blue().italic())
+        .highlight_symbol("▶")
         .repeat_highlight_symbol(true)
         .direction(ListDirection::TopToBottom)
 }

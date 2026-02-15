@@ -1,5 +1,3 @@
-use std::io::Error;
-
 use ratatui::widgets::ListState;
 
 use crate::{task::Task, workspace::Workspace};
@@ -7,6 +5,7 @@ use crate::{task::Task, workspace::Workspace};
 #[derive(Debug, Default)]
 pub struct Model {
     workspaces: Vec<Workspace>,
+    tasks: Vec<Task>,
 
     pub focussed_panel: Panel,
     pub running_state: RunningState,
@@ -33,13 +32,6 @@ impl Model {
         &self.task_selection
     }
 
-    pub fn task_count(&self) -> Result<usize, Error> {
-        match self.workspace_selection.selected() {
-            Some(index) => Ok(self.workspaces[index].tasks()?.len()),
-            None => Ok(0),
-        }
-    }
-
     pub(crate) fn workspace_count(&self) -> usize {
         self.workspaces.len()
     }
@@ -52,11 +44,16 @@ impl Model {
         &mut self.workspaces
     }
 
-    pub fn tasks(&self) -> Result<Vec<Task>, Error> {
-        match self.workspace_selection.selected() {
-            Some(index) => Ok(self.workspaces[index].tasks()?),
-            None => Ok(Vec::new()),
-        }
+    pub fn tasks(&self) -> &[Task] {
+        &self.tasks
+    }
+
+    pub(crate) fn task_count(&self) -> usize {
+        self.tasks.len()
+    }
+
+    pub(crate) fn replace_tasks(&mut self, tasks: Vec<Task>) {
+        self.tasks = tasks;
     }
 }
 
@@ -68,7 +65,7 @@ pub enum Panel {
     Task,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum Action {
     SelectWorkspace { workspace_index: usize },
     SelectTask { task_index: usize },

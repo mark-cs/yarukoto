@@ -22,7 +22,7 @@ impl Workspace {
         })
     }
 
-    pub fn tasks(&self) -> Result<Vec<Task>, Error> {
+    pub fn read_tasks(&self) -> Result<Vec<Task>, Error> {
         self.path
             .read_dir()?
             .flatten()
